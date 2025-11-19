@@ -1,0 +1,49 @@
+
+
+<div class="main-container">
+  <!-- Filter Component (on the left) -->
+  <div class="filter-section" [ngClass]="{'hidden': isFilterHidden}">
+    <button class="close-button" (click)="toggleFilter()">×</button>
+    <app-filter
+      [filter]="['general', 'currencies', 'flowType', 'companies']"
+      (inFilterVisualize)="onVisualize($event)"
+    ></app-filter>
+  </div>
+
+  <!-- Half-circle button to show filter when it's hidden -->
+  <button
+    class="show-filter-button"
+    [ngClass]="{'visible': isFilterHidden}"
+    (click)="toggleFilter()"
+  >
+    Open filter
+  </button>
+
+  <!-- Graph Component (on the right) -->
+  <div class="graph-section" [ngClass]="{'expanded': isFilterHidden}">
+    <app-internal-graph-legend></app-internal-graph-legend>
+    <div class="graph-container">
+      <ng-container *ngIf="graphData; else loadingTemplate">
+      <app-sigma-graph
+        *ngIf="graphData?.nodes?.length; else noDataTemplate"
+        [data]="graphData"
+        (onNodeClick)="onNodeClick($event)"
+        (onEdgeClick)="onEdgeClick($event)"
+      >
+      </app-sigma-graph>
+      </ng-container>
+      <ng-template #loadingTemplate>
+        <div class="loading-message">
+          <h2>Loading graph</h2>
+          <p>Please wait till the graph is initialized.</p>
+        </div>
+      </ng-template>
+      <ng-template #noDataTemplate>
+        <div class="no-data-message">
+          <h2>No Data Available</h2>
+          <p>There is no data to display in the graph.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

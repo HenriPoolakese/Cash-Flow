@@ -1,0 +1,394 @@
+<div class="filter-container">
+  <div class="filter-header">
+    <h2>Filter</h2>
+  </div>
+
+  <div class="tab-content">
+    <!-- General Section -->
+    <div *ngIf="filter.includes('general')" class="filter-section">
+      <div (click)="toggleSection('general')" class="filter-section-header">
+        General
+        <span [class.rotated]="!collapsedSections['general']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['general']" class="filter-section-content">
+
+        <!-- Instructional message -->
+        <p class="instruction-message">Choose a time period or specify both from and to dates:</p>
+
+        <!-- Time Period Buttons -->
+        <div class="form-group time-period-group">
+          <label class="form-label">Time Period:</label>
+          <div class="time-period-buttons">
+            <button
+              *ngFor="let period of timePeriods"
+              [ngClass]="{ 'active': selectedTimePeriod === period }"
+              (click)="selectTimePeriod(period)"
+              class="time-period-button"
+            >
+              {{ period }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Date Range Inputs -->
+        <div class="form-group date-range-group">
+          <label for="fromDate" class="form-label">From:</label>
+          <input type="date" id="fromDate" [(ngModel)]="fromDate" class="form-input" (change)="onDateChange()">
+        </div>
+        <div class="form-group date-range-group">
+          <label for="toDate" class="form-label">To:</label>
+          <input type="date" id="toDate" [(ngModel)]="toDate" class="form-input" (change)="onDateChange()">
+        </div>
+
+        <!-- Warning message if no valid selection is made -->
+        <div *ngIf="showWarning" class="warning-message">
+          Please select a Time Period or specify both From and To dates.
+        </div>
+      </div>
+    </div>
+
+    <!-- Counterparties Section -->
+    <div *ngIf="filter.includes('counterparties')" class="filter-section">
+      <div (click)="toggleSection('counterparties')" class="filter-section-header">
+        Counterparties
+        <span [class.rotated]="!collapsedSections['counterparties']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['counterparties']" class="filter-section-content">
+        <p>User should be able to choose how many debit and credit counterparty nodes are displayed. If chosen 1 then, 1
+          top credit and 1 top credit counterparty is diplayed + Private node.</p>
+        <div class="form-group">
+          <label for="topCounterpartiesCount" class="form-label">Number of counterparties to show:</label>
+          <input type="number" id="topCounterpartiesCount" [(ngModel)]="topCounterpartiesCount" min="1"
+                 class="form-input" placeholder="Enter a number"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Top Companies (Grouped by):</label>
+          <select [(ngModel)]="groupingOption" class="form-input">
+            <option value="country">Country</option>
+            <option value="company">Company</option>
+          </select>
+        </div>
+
+        <div class="counterparty-list" *ngIf="showCounterpartiesBox && groupingOption === 'country'; else disabledMessage">
+          <label class="form-label">Choose counterparties to visualize their accounts:</label>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTermCounterparty"
+            (input)="filterCounterparties()"
+            placeholder="Search counterparties..."
+            class="search-input"
+          />
+
+          <div class="select-all-controls">
+            <label class="toggle-select-all">
+              <input
+                type="checkbox"
+                [checked]="isAllCounterpartiesSelected()"
+                (change)="toggleSelectAllCounterparties()"
+              />
+              <span>{{ isAllCounterpartiesSelected() ? 'Deselect All' : 'Select All' }}</span>
+            </label>
+          </div>
+
+          <ul *ngIf="paginatedCounterparties.length > 0; else noResults">
+            <li *ngFor="let counterparty of paginatedCounterparties">
+              <input
+                type="checkbox"
+                [checked]="isCounterpartySelected(counterparty)"
+                (change)="toggleCounterparty(counterparty)"
+              />
+              {{ counterparty.counterpartyKey }}
+            </li>
+          </ul>
+
+          <ng-template #noResults>
+            <p>No counterparties found.</p>
+          </ng-template>
+
+          <div class="pagination-info">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
+            {{ Math.min(currentPage * itemsPerPage, filteredCounterparties.length) }}
+            of {{ filteredCounterparties.length }} counterparties.
+          </div>
+
+          <div class="pagination-controls">
+            <button
+              (click)="prevCounterpartiesPage()"
+              [ngClass]="{'active': currentPage > 1, 'disabled': currentPage === 1 || !filteredCounterparties.length}"
+              [disabled]="currentPage === 1 || !filteredCounterparties.length"
+            >
+              Previous
+            </button>
+            <span>
+      Page {{ currentPage }} of {{ Math.ceil(filteredCounterparties.length / itemsPerPage) }}
+    </span>
+            <button
+              (click)="nextCounterpartiesPage()"
+              [ngClass]="{'active': (currentPage * itemsPerPage) < filteredCounterparties.length, 'disabled': (currentPage * itemsPerPage) >= filteredCounterparties.length || !filteredCounterparties.length}"
+              [disabled]="(currentPage * itemsPerPage) >= filteredCounterparties.length || !filteredCounterparties.length"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+        <ng-template #disabledMessage>
+          <p class="disabled-message">Switch to "Country" view to select counterparties.</p>
+        </ng-template>
+      </div>
+    </div>
+
+
+    <!-- Countries Section -->
+    <div *ngIf="filter.includes('countries')" class="filter-section">
+      <div (click)="toggleSection('countries')" class="filter-section-header">
+        Countries
+        <span [class.rotated]="!collapsedSections['countries']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['countries']" class="filter-section-content">
+        <!-- Check if countries exist and display buttons, otherwise show a message -->
+        <div *ngIf="countries && countries.length > 0 && showCountries; else noCountriesMessage">
+          <div class="select-all-controls">
+            <label class="toggle-select-all">
+              <input
+                type="checkbox"
+                [checked]="areAllCountriesSelected()"
+                (change)="toggleSelectAllCountries()"
+              />
+              {{ areAllCountriesSelected() ? 'Deselect All' : 'Select All' }}
+            </label>
+          </div>
+          <div class="country-buttons">
+            <button
+              *ngFor="let country of countries"
+              [ngClass]="{ 'filter-button': true, 'active': selectedCountries.includes(country) }"
+              (click)="toggleCountry(country)">
+              {{ country }}
+            </button>
+          </div>
+        </div>
+        <!-- Message when no countries are available -->
+        <ng-template #noCountriesMessage>
+          <p class="no-countries-message">No countries available or this filter cannot be applied.</p>
+        </ng-template>
+      </div>
+    </div>
+
+
+
+    <!-- Currencies Section -->
+    <div *ngIf="currencies.length" class="filter-section">
+      <div (click)="toggleSection('currencies')" class="filter-section-header">
+        Currencies
+        <span [class.rotated]="!collapsedSections['currencies']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['currencies']" class="filter-section-content">
+        <div class="select-all-controls">
+          <label class="toggle-select-all">
+            <input
+              type="checkbox"
+              [checked]="areAllCurrenciesSelected()"
+              (change)="toggleSelectAllCurrencies()"
+            />
+            {{ areAllCurrenciesSelected() ? 'Deselect All' : 'Select All' }}
+          </label>
+        </div>
+        <div class="currency-buttons">
+          <button
+            *ngFor="let currency of currencies"
+            [ngClass]="{ 'active': selectedCurrencies.includes(currency) }"
+            (click)="toggleCurrency(currency)">
+            {{ currency }}
+          </button>
+        </div>
+        <div class="form-group amount-representation-group">
+          <label class="form-label">Amount Representation:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="amountRepresentation"
+                [(ngModel)]="amountRepresentation"
+                value="full"
+              />
+              Original Number
+            </label>
+          </div>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="amountRepresentation"
+                [(ngModel)]="amountRepresentation"
+                value="thousands"
+              />
+              In Thousands
+            </label>
+          </div>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="amountRepresentation"
+                [(ngModel)]="amountRepresentation"
+                value="millions"
+              />
+              In Millions
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banks Section -->
+    <div *ngIf="filter.includes('banks')" class="filter-section">
+      <div (click)="toggleSection('banks')" class="filter-section-header">
+        Banks
+        <span [class.rotated]="!collapsedSections['banks']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['banks']" class="filter-section-content">
+        <div class="bank-buttons">
+          <button
+            *ngFor="let bank of banks"
+            [ngClass]="{ 'active': selectedBanks.includes(bank) }"
+            (click)="toggleBank(bank)">
+            {{ bank }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Type Section -->
+    <div *ngIf="filter.includes('flowType')" class="filter-section">
+      <div (click)="toggleSection('flowType')" class="filter-section-header">
+        Flow Type
+        <span [class.rotated]="!collapsedSections['flowType']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['flowType']" class="filter-section-content">
+        <div class="form-group">
+          <label for="flowType" class="form-label">Select Flow Type:</label>
+          <select id="flowType" [(ngModel)]="selectedFlow" class="form-select">
+            <option value="Incoming/Outgoing">Incoming/Outgoing</option>
+            <option value="Incoming">Incoming</option>
+            <option value="Outgoing">Outgoing</option>
+            <option value="Netflow">Netflow</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Companies Section -->
+    <div *ngIf="filter.includes('companies')" class="filter-section">
+      <div (click)="toggleSection('companies')" class="filter-section-header">
+        Companies
+        <span [class.rotated]="!collapsedSections['companies']">▼</span>
+      </div>
+      <div *ngIf="!collapsedSections['companies']" class="filter-section-content">
+        <div class="company-list">
+          <div class="select-all-controls">
+            <label class="toggle-select-all">
+              <input
+                type="checkbox"
+                [checked]="areAllCompaniesSelected()"
+                (change)="toggleSelectAllCompanies()"
+              />
+              {{ areAllCompaniesSelected() ? 'Deselect All' : 'Select All' }}
+            </label>
+          </div>
+          <label class="form-label">Companies shown:</label>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="filterCompanies()"
+            placeholder="Search companies..."
+            class="search-input"
+          />
+          <ul>
+            <li *ngFor="let company of paginatedCompanies">
+              <input
+                type="checkbox"
+                [checked]="isCompanySelected(company)"
+                (change)="toggleCustomer(company)"
+              />
+              {{ company.customerName }} ({{ company.customerType }})
+            </li>
+          </ul>
+          <div class="pagination-controls">
+            <button (click)="prevParticipantsPage()" [disabled]="currentPage === 1">Previous</button>
+            <span>
+          Page {{ currentPage }} of {{ Math.ceil(filteredParticipants.length / itemsPerPage) }}
+        </span>
+            <button
+              (click)="nextParticipantsPage()"
+              [disabled]="(currentPage * itemsPerPage) >= filteredParticipants.length"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tables Section -->
+    <div *ngIf="filter.includes('tables')" class="filter-section">
+      <div (click)="toggleSection('tables')" class="filter-section-header">
+        Tables
+        <span [class.rotated]="!collapsedSections['tables']">▼</span>
+      </div>
+
+      <div *ngIf="!collapsedSections['tables']" class="filter-section-content">
+        <!-- Group Flow Direction Selection -->
+        <div class="form-group flow-direction-group">
+          <label class="form-label">Select Flow Direction:</label>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="flowDirection"
+                [(ngModel)]="flowDirection"
+                value="from"
+              />
+              Total Incoming Cash Flows
+            </label>
+          </div>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="flowDirection"
+                [(ngModel)]="flowDirection"
+                value="to"
+              />
+              Total Outgoing Cash Flows
+            </label>
+          </div>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="flowDirection"
+                [(ngModel)]="flowDirection"
+                value="netflow"
+              />
+              Top Netflows
+            </label>
+          </div>
+        </div>
+
+        <!-- Display Table Button -->
+        <button
+          class="display-table-button"
+          (click)="emitFilterDisplayTable()"
+          [disabled]="!flowDirection"
+        >
+          Display Table
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button class="visualize-button" (click)="emitFilterVisualize()" [disabled]="showWarning&&flowDirection">
+    Visualize
+  </button>
+</div>

@@ -1,0 +1,77 @@
+
+
+
+3. Currency Selection for Cash Flow Visualization
+Use Case Name: Select Currency for Visualization
+Primary Actor: CFO
+Goal: To allow the user to choose a specific currency to visualize the cash flows, either in original or converted EUR values.
+Preconditions: The user has transaction data with multiple currencies.
+Triggers: The CFO selects a currency from the dropdown.
+Main Success Scenario:
+The CFO selects the currency filter from the dashboard.
+The system shows a list of currencies used in payments.
+The CFO selects the desired currency or chooses EUR for conversion.
+The system dynamically updates the cash flow visualization to show transactions in the selected currency.
+Postconditions:
+The cash flow visualization is displayed using the chosen currency.
+
+
+4. Visualize Cash Flows by Company Division
+Use Case Name: View Cash Flows by Company Division
+Primary Actor: CFO
+Goal: To enable users to visualize cash flows for different divisions within the company.
+Preconditions: Division structure is provided.
+Triggers: The CFO selects the company division filter.
+Main Success Scenario:
+The CFO selects the "Division" filter option.
+The system provides a list of available divisions.
+The CFO chooses a specific division or selects all divisions.
+The system updates the visualization to display only the transactions for the selected division(s).
+Postconditions:
+The user views cash flows for a particular division or the entire company.
+
+
+
+5. Filter Cash Flows by Specific Parameters
+Use Case Name: Filter Cash Flows
+Primary Actor: CFO
+Goal: To allow users to filter cash flows based on different parameters such as time, currency, payment type, etc.
+Preconditions: The user has uploaded transaction data.
+Triggers: The CFO selects one or more filters from the filtering options.
+Main Success Scenario:
+The CFO selects specific filters (e.g., time period, currency, payment type).
+The system retrieves the filtered data based on the selected parameters.
+The cash flow visualization is updated according to the chosen filters.
+The CFO can adjust filters in real-time to refine the view.
+Postconditions:
+Filtered cash flows are visualized based on the selected criteria.
+
+
+6. View Top Vendors and Customers
+Use Case Name: View Top Vendors and Customers
+Primary Actor: CFO
+Goal: To allow users to view lists of the top vendors and customers based on payment amount and frequency.
+Preconditions: Transaction data includes payments to vendors and from customers.
+Triggers: The CFO selects the "Top Vendors and Customers" feature.
+Main Success Scenario:
+The CFO selects to view either top vendors or top customers.
+The system retrieves the top 5 or 10 vendors/customers based on the CFO’s preference.
+The system displays a table with details like payment amount, frequency, and average time between payments.
+The CFO can sort the data by any column (amount, frequency, etc.).
+Postconditions:
+The user sees the top vendors or customers in a sortable list format.
+
+
+7. Visualize Cash Flow for Vendors and Customers
+Use Case Name: Visualize Cash Flow for Vendors and Customers
+Primary Actor: CFO
+Goal: To visualize cash flows specifically for key vendors or customers.
+Preconditions: Transaction data includes vendors and customers.
+Triggers: The CFO selects to visualize cash flows for vendors or customers.
+Main Success Scenario:
+The CFO selects either "Vendors" or "Customers" from the visualization options.
+The system filters and displays only transactions related to the selected vendors or customers.
+The CFO can overlay additional information such as the average time between payments and payment frequency.
+Postconditions:
+The user sees a visualized representation of cash flows for key vendors or customers.
+

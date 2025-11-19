@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15.4-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+  
+  flyway:
+    image: flyway/flyway:latest
+    container_name: flyway
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=app_cashflow
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: "password"
+    volumes:
+      - ./backend/src/main/resources/db/migration/dev:/flyway/sql
+    depends_on:
+      - postgres
+    entrypoint: ["flyway", "migrate"]
+
+  backend:
+    image: registry.gitlab.ut.ee/marielle.lepson/cash-flow-visualization-tool/backend
+    container_name: backend-app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=app_cashflow
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: "password"
+    depends_on:
+      - postgres
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  frontend:
+    image: registry.gitlab.ut.ee/marielle.lepson/cash-flow-visualization-tool/frontend
+    container_name: frontend-app
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:4200:80"
+
+volumes:
+  postgres_data:  # Named volume for persistent database storage

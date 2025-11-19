@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: cash-flow-visualization-tool
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=app_cashflow_test
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: app_cashflow_test  # Make sure this points to the test schema
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration/test
+    schemas: app_cashflow_test # Flyway will target the test schema
+    clean-on-validation-error: true

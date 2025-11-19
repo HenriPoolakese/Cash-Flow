@@ -1,0 +1,175 @@
+# Use Docker runners
+stages:
+  # - cleanup
+  - build
+  #- test
+  - deploy
+
+#Check disk space
+# check-disk-space:
+#   stage: cleanup
+#   image: alpine:3.21.0
+#   script:
+#     - echo "Checking disk space before cleaning..."
+#     - df -h
+#   tags:
+#     - digitalocean
+#   only:
+#     - master
+
+# Cleanup stage to free up space before builds
+#cleanup-docker:
+#  stage: cleanup
+#  image: docker:20.10
+#  services:
+#    - docker:20.10-dind
+#  script:
+#   - echo "Cleaning up unused Docker resources..."
+#    - docker system prune -af
+#    - docker volume prune -f
+#  only:
+#   - master
+#  tags:
+#    - digitalocean
+
+# Step 1: Build the backend Docker image
+build-backend:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:20.10-dind
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-backend
+    paths:
+      - backend/.m2/repository
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - echo "Building the backend Docker image..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd backend
+    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA -f Dockerfile .
+    - docker tag $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/backend:latest
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+    - echo "Backend image built and pushed as $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA"
+  after_script:
+    - echo "Cleaning up after backend build..."
+    - docker system prune -af || echo "Docker cleanup failed!"
+  tags:
+    - digitalocean
+#  rules:
+#    - if: $CI_COMMIT_BRANCH
+#      changes:
+#        paths:
+#          - "backend/**/*"
+  only:
+    - master
+
+# Step 2: Build the frontend Docker image
+build-frontend:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:20.10-dind
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-frontend
+    paths:
+      - frontend/node_modules/
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    # - echo "Performing Docker cleanup before build..."
+    # - docker system prune -af
+    # - docker image prune -a -f
+    # - docker volume prune -f
+    - echo "Building the frontend Docker image..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd frontend
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA -f Dockerfile .
+    - docker tag $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/frontend:latest
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+    - echo "Frontend image built and pushed as $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA"
+  tags:
+    - digitalocean
+#  rules:
+#    - if: $CI_COMMIT_BRANCH
+#      changes:
+#        paths:
+#          - "frontend/**/*"
+  only:
+    - master
+
+# Step 3: Test stage
+#test-backend:
+#  stage: test
+#  image: maven:3.8.4-openjdk-17
+#  services:
+#    - postgres:15.4
+#  cache:
+#    key: ${CI_COMMIT_REF_SLUG}-test
+#    paths:
+#      - backend/.m2/repository/
+#  script:
+#    - cd backend
+#    - mvn test -D spring.profiles.active=test
+#  tags:
+#    - macos
+#  only:
+#    - master
+
+#test-backend:
+#  stage: test
+#  image: maven:3.8.4-openjdk-17
+#  services:
+#    - name: postgres:15.4-alpine
+#      alias: postgres
+#  variables:
+#    SPRING_PROFILES_ACTIVE: test
+#    POSTGRES_HOST_AUTH_METHOD: trust
+#  cache:
+#    key: ${CI_COMMIT_REF_SLUG}-test
+#    paths:
+#      - backend/.m2/repository/
+#  script:
+#    - echo "Waiting for PostgreSQL to be ready..."
+#    - until pg_isready -h postgres -p 5432; do sleep 1; done
+#    - echo "Running Flyway migrations..."
+#    - mvn flyway:migrate -Dflyway.url=jdbc:postgresql://postgres:5432/postgres?currentSchema=app_cashflow_test -Dflyway.user=postgres -Dflyway.password=password
+#    - echo "Running unit tests..."
+#    - mvn test -Dspring.profiles.active=test
+#  after_script:
+#    - echo "Cleaning up after tests..."
+#    - docker system prune -af
+#  tags:
+#    - digitalocean
+# only:
+#    - master
+
+#Step 4: Deploy on server
+deploy:
+  stage: deploy
+  image: alpine:3.21.0
+  script:
+    - echo "Deploying to DigitalOcean..."
+    - echo "$SERVER_USER@$SERVER_IP "
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$ID_RSA" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r * "$SERVER_USER@$SERVER_IP":~/
+    # If deploy fails run these two commands on server:
+    #docker stop $(docker ps -a -q)
+    #docker rm $(docker ps --filter=status=exited --filter=status=created -q)
+    - ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_IP" "docker container stop frontend-app backend-app postgres-db && docker container prune -f && docker image prune -f"
+    - ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_IP" "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_IP" "docker pull $CI_REGISTRY_IMAGE/backend:latest && docker pull $CI_REGISTRY_IMAGE/frontend:latest && docker-compose -f ~/docker-compose-live.yml up -d --remove-orphans"
+  tags:
+    - digitalocean
+  only:
+    - master

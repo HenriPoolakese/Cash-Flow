@@ -1,0 +1,58 @@
+<div class="table-modal" cdkDrag>
+  <button class="close-table-button" (click)="onClose()">×</button>
+  <div class="table-content">
+    <h3>
+      {{
+        flowDirection === 'to'
+          ? "Total Outgoing Cash Flows"
+          : flowDirection === 'from'
+            ? "Total Incoming Cash Flows"
+            : "Top Netflows"
+      }}
+    </h3>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th (click)="onSort('participantName')">Company {{ getSortIcon('participantName') }}</th>
+          <th (click)="onSort('account')">Account {{ getSortIcon('account') }}</th>
+          <th (click)="onSort('amount')">Amount {{ getSortIcon('amount') }}</th>
+          <th (click)="onSort('currency')">Currency {{ getSortIcon('currency') }}</th>
+          <th (click)="onSort('frequency')">Frequency {{ getSortIcon('frequency') }}</th>
+          <th (click)="onSort('averageAmount')">Average Amount {{ getSortIcon('averageAmount') }}</th>
+          <th (click)="onSort('earliestDate')">Earliest Date {{ getSortIcon('earliestDate') }}</th>
+          <th (click)="onSort('latestDate')">Latest Date {{ getSortIcon('latestDate') }}</th>
+          <th (click)="onSort('counterparty')">Counterparty {{ getSortIcon('counterparty') }}</th>
+          <th *ngIf="shouldShowCounterpartyAccount()" (click)="onSort('counterpartyAccount')">
+            Counterparty Account {{ getSortIcon('counterpartyAccount') }}
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngIf="paginatedData.length === 0">
+          <td colspan="9" class="no-data-message">No data to visualize</td>
+        </tr>
+        <tr *ngFor="let row of paginatedData">
+          <td>{{ row.participantName }}</td>
+          <td>{{ row.account }}</td>
+          <td>{{ row.amount }}</td>
+          <td>{{ row.currency }}</td>
+          <td>{{ row.frequency }}</td>
+          <td>{{ row.averageAmount }}</td>
+          <td>{{ row.earliestDate }}</td>
+          <td>{{ row.latestDate }}</td>
+          <td>{{ row.counterparty }}</td>
+          <td *ngIf="shouldShowCounterpartyAccount()">{{ row.counterpartyAccount }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-controls">
+      <span *ngFor="let page of pages"
+            (click)="setPage(page)"
+            [ngClass]="{'active-page': page === currentPage}">
+        {{ page }}
+      </span>
+    </div>
+  </div>
+</div>

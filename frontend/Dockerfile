@@ -1,0 +1,25 @@
+# Use Node.js for building the Angular app
+FROM node:20 AS build
+
+WORKDIR /app
+
+# Copy package.json and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the Angular application
+RUN npm run build
+
+# Use NGINX to serve the built Angular application
+FROM nginx:alpine
+
+# Copy the built Angular app from the build stage
+COPY /nginx.conf /etc/nginx/conf.d/default.conf
+
+COPY --from=build /app/dist/cash-flow-visualization-frontend/browser /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80

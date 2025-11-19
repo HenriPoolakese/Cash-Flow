@@ -1,0 +1,31 @@
+@import '@sebgroup/fonts/scss/seb-fonts.scss';
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "SEBSansSerif", sans-serif;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-family: "SEBSansSerif", sans-serif;
+  font-weight: 500;
+}
+
+body, p {
+  font-family: "SEBSansSerif", sans-serif;
+  font-weight: 400;
+}
+
+.secondary-text {
+  font-family: "SEBSansSerif", sans-serif;
+  font-weight: 300;
+}
+
+.italic-text {
+  font-family: "SEBSansSerif", sans-serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+
+html, body { height: 100%; }
+body { margin: 0;}

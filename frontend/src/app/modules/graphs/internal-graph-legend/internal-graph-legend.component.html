@@ -1,0 +1,26 @@
+<div class="legend-container">
+  <p (click)="toggleAccordion()" class="accordion-header">
+    Graph Legend
+    <span class="arrow" [class.rotated]="isOpen">▼</span>
+  </p>
+  <div *ngIf="isOpen" class="accordion-content">
+    <div class="node-section">
+      <p class="title">Node Types</p>
+      <ul>
+        <li *ngFor="let node of nodeTypes" class="node-item">
+          <img [src]="node.image" alt="{{ node.type }}" class="node-icon">
+          <span><strong>{{ node.type }}</strong>: {{ node.description }}</span>
+        </li>
+      </ul>
+    </div>
+    <div class="arrow-section">
+      <p class="title">Arrow Types</p>
+      <ul>
+        <li *ngFor="let arrow of arrowTypes" class="arrow-item">
+          <span class="arrow-color" [style.background-color]="arrow.color"></span>
+          <span><strong>{{ arrow.type }}</strong>: {{ arrow.description }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

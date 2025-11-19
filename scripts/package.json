@@ -1,0 +1,21 @@
+{
+  "name": "synth-data",
+  "version": "1.0.0",
+  "description": "",
+  "main": "generateTransfers.ts",
+  "scripts": {
+    "start": "ts-node generateTransfers.ts"
+  },
+  "author": "Kirke Kasak",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^11.1.0",
+    "json-2-csv": "^5.5.6"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^22.7.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,17 @@
+<div class="parent-container">
+  <div #sigmaContainer class="sigma-container"></div>
+  <div
+    *ngIf="tooltip.visible"
+    class="tooltip"
+    [style.left.px]="tooltip.x"
+    [style.top.px]="tooltip.y">
+    <div *ngIf="tooltip.title" class="tooltip-title">
+      {{ tooltip.title }}
+    </div>
+    <div class="tooltip-row" *ngFor="let entry of tooltip.content | keyvalue: keepOriginalOrder">
+      <label>{{ entry.key }}:</label>
+      <span>{{ entry.value }}</span>
+    </div>
+  </div>
+</div>
+

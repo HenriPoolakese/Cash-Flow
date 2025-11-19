@@ -1,0 +1,41 @@
+.sigma-container {
+  width: 100%;
+  height: 90vh;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  pointer-events: none; // Ensures it doesn't interfere with mouse interactions
+  display: flex;
+  flex-direction: column;
+  gap: 5px; // Add spacing between rows
+}
+
+.tooltip-title {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 5px; // Space between title and content
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between; // Ensures proper alignment
+  align-items: baseline; // Aligns text in rows
+}
+
+.tooltip-row label {
+  font-weight: bold;
+  margin-right: 5px;
+  text-align: left; // Align text to the left for labels
+}
+
+.tooltip-row span {
+  flex: 1; // Allow the value to take up the remaining space
+  text-align: right; // Align text to the right for values
+}

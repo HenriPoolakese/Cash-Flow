@@ -1,0 +1,23 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a routerLink="/" (click)="closeMenu()">
+      <h1>Cash Flow Visualization Tool</h1>
+    </a>
+  </div>
+  <button class="navbar-toggler" (click)="toggleMenu()">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
+  <ul class="navbar-nav" [class.active]="isMenuOpen">
+    <li class="nav-item" *ngFor="let item of menuItems">
+      <a [routerLink]="item.link"
+         routerLinkActive="active"
+         (click)="closeMenu()"
+      >
+        {{ item.label }}
+      </a>
+    </li>
+  </ul>
+</nav>
+
